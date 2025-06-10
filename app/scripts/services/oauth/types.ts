@@ -5,11 +5,68 @@ import {
 
 export const SERVICE_NAME = 'OAuthService';
 
+/**
+ * The WebAuthenticator is a type that defines the methods for the Web Authenticator API to launch the OAuth2 login flow.
+ * It is used to abstract the Web Authenticator API from the OAuthService.
+ */
+export type WebAuthenticator = {
+  /**
+   * Get the redirect URL for the OAuth login.
+   *
+   * @returns The redirect URL for the OAuth login.
+   */
+  getRedirectURL: () => string;
+
+  /**
+   * Launch the oauth2 web flow to get the Authorization Code from the social login provider.
+   *
+   * @param options - The options for the web auth flow.
+   * @returns The redirect URL from the social login provider.
+   */
+  launchWebAuthFlow: (
+    options: {
+      /** The URL that initiates the auth flow. */
+      url: string;
+      /**
+       * Optional.
+       * Whether to launch auth flow in interactive mode.
+       * Since some auth flows may immediately redirect to a result URL, launchWebAuthFlow hides its web view until the first navigation either redirects to the final URL, or finishes loading a page meant to be displayed.
+       * If the interactive flag is true, the window will be displayed when a page load completes. If the flag is false or omitted, launchWebAuthFlow will return with an error if the initial navigation does not complete the flow.
+       */
+      interactive?: boolean;
+    },
+    /**
+     * The callback function to handle the response from the social login provider.
+     *
+     * @param responseUrl - The redirect URL from the social login provider.
+     */
+    callback: (responseUrl?: string) => void,
+  ) => Promise<string | null | void>;
+
+  /**
+   * Generate a code verifier challenge for the OAuth login PKCE flow.
+   *
+   * @returns The code verifier challenge string.
+   */
+  generateCodeVerifierAndChallenge: () => Promise<{
+    codeVerifier: string;
+    challenge: string;
+  }>;
+
+  /**
+   * Generate a nonce for the OAuth login.
+   *
+   * @returns The nonce string.
+   */
+  generateNonce: () => string;
+};
+
 export type LoginHandlerOptions = {
   oAuthClientId: string;
   authServerUrl: string;
   web3AuthNetwork: Web3AuthNetwork;
   redirectUri: string;
+  webAuthenticator: WebAuthenticator;
   scopes?: string[];
   /**
    * The server redirect URI to use for the OAuth login.
@@ -43,37 +100,6 @@ export type OAuthLoginEnv = {
   authServerUrl: string;
   web3AuthNetwork: Web3AuthNetwork;
   serverRedirectUri?: string;
-};
-
-/**
- * The WebAuthenticator is a type that defines the methods for the Web Authenticator API to launch the OAuth2 login flow.
- * It is used to abstract the Web Authenticator API from the OAuthService.
- */
-export type WebAuthenticator = {
-  /**
-   * Get the redirect URL for the OAuth login.
-   *
-   * @returns The redirect URL for the OAuth login.
-   */
-  getRedirectURL: () => string;
-
-  /**
-   * Launch the oauth2 web flow to get the Authorization Code from the social login provider.
-   *
-   * @param options - The options for the web auth flow.
-   * @returns The redirect URL from the social login provider.
-   */
-  launchWebAuthFlow: (options: {
-    /** The URL that initiates the auth flow. */
-    url: string;
-    /**
-     * Optional.
-     * Whether to launch auth flow in interactive mode.
-     * Since some auth flows may immediately redirect to a result URL, launchWebAuthFlow hides its web view until the first navigation either redirects to the final URL, or finishes loading a page meant to be displayed.
-     * If the interactive flag is true, the window will be displayed when a page load completes. If the flag is false or omitted, launchWebAuthFlow will return with an error if the initial navigation does not complete the flow.
-     */
-    interactive?: boolean;
-  }) => Promise<string | null>;
 };
 
 export type OAuthServiceOptions = {

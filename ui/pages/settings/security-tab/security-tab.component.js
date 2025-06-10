@@ -23,15 +23,16 @@ import {
   SECURITY_ALERTS_LEARN_MORE_LINK,
   TRANSACTION_SIMULATIONS_LEARN_MORE_LINK,
 } from '../../../../shared/lib/ui-utils';
-import SRPQuiz from '../../../components/app/srp-quiz-modal/SRPQuiz';
 import {
   Button,
+  ButtonSize,
   Icon,
   IconSize,
   IconName,
   Box,
   Text,
-  ButtonSize,
+  BannerAlert,
+  BannerAlertSeverity,
 } from '../../../components/component-library';
 import TextField from '../../../components/ui/text-field';
 import ToggleButton from '../../../components/ui/toggle-button';
@@ -106,14 +107,14 @@ export default class SecurityTab extends PureComponent {
     setSecurityAlertsEnabled: PropTypes.func,
     metaMetricsDataDeletionId: PropTypes.string,
     hdEntropyIndex: PropTypes.number,
-    hasMultipleHdKeyrings: PropTypes.bool,
     socialLoginEnabled: PropTypes.bool,
+    socialLoginType: PropTypes.string,
+    seedPhraseBackedUp: PropTypes.bool,
   };
 
   state = {
     ipfsGateway: this.props.ipfsGateway || IPFS_DEFAULT_GATEWAY_URL,
     ipfsGatewayError: '',
-    srpQuizModalVisible: false,
     showDataCollectionDisclaimer: false,
     ipfsToggle: this.props.ipfsGateway.length > 0,
   };
@@ -164,11 +165,35 @@ export default class SecurityTab extends PureComponent {
     toggleMethod(!value);
   }
 
-  hideSrpQuizModal = () => this.setState({ srpQuizModalVisible: false });
-
   renderSeedWords() {
     const { t } = this.context;
-    const { history, hasMultipleHdKeyrings, socialLoginEnabled } = this.props;
+    const { history, seedPhraseBackedUp, socialLoginEnabled, socialLoginType } =
+      this.props;
+
+    const getBannerDescription = () => {
+      if (socialLoginEnabled) {
+        return t('securityLoginWithSocial', [socialLoginType]);
+      }
+      return seedPhraseBackedUp
+        ? t('securityLoginWithSrpBackedUp')
+        : t('securityLoginWithSrpNotBackedUp');
+    };
+
+    const getBannerSeverity = () => {
+      if (socialLoginEnabled) {
+        return BannerAlertSeverity.Success;
+      }
+      return seedPhraseBackedUp
+        ? BannerAlertSeverity.Success
+        : BannerAlertSeverity.Danger;
+    };
+
+    const getButtonText = () => {
+      if (socialLoginEnabled) {
+        return t('securitySrpWalletRecovery');
+      }
+      return t('revealSecretRecoveryPhrase');
+    };
 
     return (
       <>
@@ -180,16 +205,21 @@ export default class SecurityTab extends PureComponent {
         </div>
         <div className="settings-page__content-padded">
           <div className="settings-page__content-description">
-            {socialLoginEnabled
-              ? t('securitySrpSocialLoginDescription')
-              : t('securitySrpDescription')}
+            {t('securitySrpDescription')}
           </div>
+          <BannerAlert
+            description={getBannerDescription()}
+            paddingTop={2}
+            paddingBottom={2}
+            marginTop={4}
+            marginBottom={4}
+            severity={getBannerSeverity()}
+          />
           <Button
             data-testid="reveal-seed-words"
             type="danger"
             size={ButtonSize.Lg}
             block
-            marginTop={4}
             onClick={(event) => {
               event.preventDefault();
               this.context.trackEvent({
@@ -209,25 +239,13 @@ export default class SecurityTab extends PureComponent {
                   location: 'Settings',
                 },
               });
-              if (hasMultipleHdKeyrings || socialLoginEnabled) {
-                history.push({
-                  pathname: REVEAL_SRP_LIST_ROUTE,
-                });
-                return;
-              }
-              this.setState({ srpQuizModalVisible: true });
+              history.push({
+                pathname: REVEAL_SRP_LIST_ROUTE,
+              });
             }}
           >
-            {hasMultipleHdKeyrings || socialLoginEnabled
-              ? t('securitySrpWalletRecovery')
-              : t('revealSeedWords')}
+            {getButtonText()}
           </Button>
-          {this.state.srpQuizModalVisible && (
-            <SRPQuiz
-              isOpen={this.state.srpQuizModalVisible}
-              onClose={this.hideSrpQuizModal}
-            />
-          )}
         </div>
       </>
     );
@@ -258,7 +276,7 @@ export default class SecurityTab extends PureComponent {
               history.push(SECURITY_PASSWORD_CHANGE_ROUTE);
             }}
           >
-            {t('securityChangePasswordChange')}
+            {t('securityChangePassword')}
           </Button>
         </div>
       </>

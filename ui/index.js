@@ -43,6 +43,9 @@ import { setBackgroundConnection } from './store/background-connection';
 import { getStartupTraceTags } from './helpers/utils/tags';
 import { SEEDLESS_PASSWORD_OUTDATED_CHECK_INTERVAL_MS } from './constants';
 
+// eslint-disable-next-line import/no-restricted-paths
+export { displayStateCorruptionError } from '../app/scripts/lib/state-corruption-errors';
+
 log.setLevel(global.METAMASK_DEBUG ? 'debug' : 'warn', false);
 
 let reduxStore;
@@ -228,22 +231,22 @@ async function startApp(metamaskState, backgroundConnection, opts) {
 }
 
 async function runInitialActions(store) {
-  const state = store.getState();
+  const initialState = store.getState();
 
   // This block autoswitches chains based on the last chain used
   // for a given dapp, when there are no pending confimrations
   // This allows the user to be connected on one chain
   // for one dapp, and automatically change for another
-  const networkIdToSwitchTo = getNetworkToAutomaticallySwitchTo(state);
+  const networkIdToSwitchTo = getNetworkToAutomaticallySwitchTo(initialState);
 
   if (networkIdToSwitchTo) {
     await store.dispatch(
       actions.automaticallySwitchNetwork(
         networkIdToSwitchTo,
-        getOriginOfCurrentTab(state),
+        getOriginOfCurrentTab(initialState),
       ),
     );
-  } else if (getSwitchedNetworkDetails(state)) {
+  } else if (getSwitchedNetworkDetails(initialState)) {
     // It's possible that old details could exist if the user
     // opened the toast but then didn't close it
     // Clear out any existing switchedNetworkDetails
@@ -259,20 +262,28 @@ async function runInitialActions(store) {
     await store.dispatch(actions.setCurrentExtensionPopupId(thisPopupId));
   }
 
-  const isUnlocked = getIsUnlocked(state);
-  try {
-    // check seedless password outdated at app init
-    // if app is locked, check skip cache to ensure user need to input latest global password
-    const skipCache = !isUnlocked;
+  let isUnlocked = getIsUnlocked(initialState);
+  if (isUnlocked) {
     const isPwOutdated = await store.dispatch(
-      actions.checkIsSeedlessPasswordOutdated(skipCache),
+      actions.checkIsSeedlessPasswordOutdated(),
     );
     if (isPwOutdated) {
       await actions.forceUpdateMetamaskState(store.dispatch);
     }
+  }
+  try {
     // periodically check seedless password outdated when app UI is open
     setInterval(async () => {
-      await store.dispatch(actions.checkIsSeedlessPasswordOutdated());
+      const state = store.getState();
+      isUnlocked = getIsUnlocked(state);
+      if (isUnlocked) {
+        const isPwOutdated = await store.dispatch(
+          actions.checkIsSeedlessPasswordOutdated(),
+        );
+        if (isPwOutdated) {
+          await actions.forceUpdateMetamaskState(store.dispatch);
+        }
+      }
     }, SEEDLESS_PASSWORD_OUTDATED_CHECK_INTERVAL_MS);
   } catch (e) {
     log.error('[Metamask] checkIsSeedlessPasswordOutdated error', e);

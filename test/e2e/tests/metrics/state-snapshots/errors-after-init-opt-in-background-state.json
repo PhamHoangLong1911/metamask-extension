@@ -166,7 +166,8 @@
     "networkConfigurationsByChainId": "object"
   },
   "NetworkOrderController": {
-    "orderedNetworkList": { "0": "object", "1": "object" }
+    "orderedNetworkList": { "0": "object", "1": "object" },
+    "enabledNetworkMap": {}
   },
   "NftController": {
     "allNftContracts": "object",
@@ -191,7 +192,6 @@
     "fcmToken": "string",
     "isUpdatingFCMToken": "boolean"
   },
-  "OAuthController": "object",
   "OnboardingController": {
     "seedPhraseBackedUp": true,
     "firstTimeFlowType": "import",
@@ -263,6 +263,7 @@
     },
     "cacheTimestamp": "number"
   },
+  "SeedlessOnboardingController": "object",
   "SelectedNetworkController": { "domains": "object" },
   "SignatureController": {
     "signatureRequests": "object",
@@ -337,6 +338,7 @@
   "TxController": {
     "methodData": "object",
     "transactions": "object",
+    "transactionBatches": "object",
     "lastFetchedBlockNumbers": "object",
     "submitHistory": "object"
   },

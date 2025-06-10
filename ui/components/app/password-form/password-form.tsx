@@ -15,9 +15,15 @@ import { TextVariant } from '../../../helpers/constants/design-system';
 
 type PasswordFormProps = {
   onChange: (password: string) => void;
+  pwdInputTestId?: string;
+  confirmPwdInputTestId?: string;
 };
 
-export default function PasswordForm({ onChange }: PasswordFormProps) {
+export default function PasswordForm({
+  onChange,
+  pwdInputTestId,
+  confirmPwdInputTestId,
+}: PasswordFormProps) {
   const t = useI18nContext();
 
   const [password, setPassword] = useState('');
@@ -108,8 +114,7 @@ export default function PasswordForm({ onChange }: PasswordFormProps) {
   const handleConfirmPasswordChange = useCallback(
     (confirmPasswordInput: string) => {
       const error =
-        password === confirmPasswordInput ||
-        confirmPasswordInput.length < PASSWORD_MIN_LENGTH
+        password === confirmPasswordInput || confirmPasswordInput.length === 0
           ? ''
           : t('passwordsDontMatch');
 
@@ -139,23 +144,17 @@ export default function PasswordForm({ onChange }: PasswordFormProps) {
         autoFocus
         autoComplete
         placeholder={t('newPasswordPlaceholder')}
-        labelProps={{ marginBottom: 1, children: t('newPassword') }}
+        labelProps={{ marginBottom: 1 }}
         size={FormTextFieldSize.Lg}
         value={password}
         inputProps={{
-          'data-testid': 'create-password-new-input',
+          'data-testid': pwdInputTestId || 'create-password-new-input',
           type: showPassword ? InputType.Text : InputType.Password,
         }}
         onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
           handlePasswordChange(e.target.value);
         }}
-        helpText={
-          passwordStrengthElement && (
-            <Text as="div" variant={TextVariant.inherit}>
-              {passwordStrengthElement}
-            </Text>
-          )
-        }
+        helpText={passwordStrengthElement && passwordStrengthElement}
         endAccessory={
           <ButtonIcon
             iconName={showPassword ? IconName.EyeSlash : IconName.Eye}
@@ -178,14 +177,18 @@ export default function PasswordForm({ onChange }: PasswordFormProps) {
         autoComplete
         marginTop={4}
         placeholder={t('confirmPasswordPlaceholder')}
-        labelProps={{ marginBottom: 1, children: t('confirmPassword') }}
+        labelProps={{ marginBottom: 1 }}
         size={FormTextFieldSize.Lg}
         error={Boolean(confirmPasswordError)}
+        helpTextProps={{
+          'data-testid': 'confirm-password-error',
+        }}
         helpText={confirmPasswordError}
         value={confirmPassword}
         disabled={password.length < PASSWORD_MIN_LENGTH}
         inputProps={{
-          'data-testid': 'create-password-confirm-input',
+          'data-testid':
+            confirmPwdInputTestId || 'create-password-confirm-input',
           type: showConfirmPassword ? InputType.Text : InputType.Password,
         }}
         onChange={(e: React.ChangeEvent<HTMLInputElement>) => {

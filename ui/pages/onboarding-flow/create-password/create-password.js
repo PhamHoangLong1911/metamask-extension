@@ -15,8 +15,8 @@ import {
   FlexDirection,
 } from '../../../helpers/constants/design-system';
 import {
-  ONBOARDING_METAMETRICS,
   ONBOARDING_COMPLETION_ROUTE,
+  ONBOARDING_METAMETRICS,
   ONBOARDING_SECURE_YOUR_WALLET_ROUTE,
 } from '../../../helpers/constants/routes';
 import ZENDESK_URLS from '../../../helpers/constants/zendesk-url';
@@ -46,11 +46,11 @@ import {
   Text,
 } from '../../../components/component-library';
 import { FirstTimeFlowType } from '../../../../shared/constants/onboarding';
-import { PLATFORM_FIREFOX } from '../../../../shared/constants/app';
-// eslint-disable-next-line import/no-restricted-paths
-import { getPlatform } from '../../../../app/scripts/lib/util';
 import PasswordForm from '../../../components/app/password-form/password-form';
 import LoadingScreen from '../../../components/ui/loading-screen';
+// eslint-disable-next-line import/no-restricted-paths
+import { getPlatform } from '../../../../app/scripts/lib/util';
+import { PLATFORM_FIREFOX } from '../../../../shared/constants/app';
 import { resetOAuthLoginState } from '../../../store/actions';
 import {
   bufferedTrace,
@@ -94,6 +94,8 @@ export default function CreatePassword({
   const analyticsIframeUrl = `https://start.metamask.io/?${new URLSearchParams(
     analyticsIframeQuery,
   )}`;
+
+  const isFirefox = getPlatform() === PLATFORM_FIREFOX;
 
   const { onboardingParentContext } = useSentryTrace();
 
@@ -205,10 +207,6 @@ export default function CreatePassword({
         bufferedEndTrace({ name: TraceName.OnboardingExistingSrpImport });
         bufferedEndTrace({ name: TraceName.OnboardingJourneyOverall });
 
-        getPlatform() === PLATFORM_FIREFOX
-          ? history.push(ONBOARDING_COMPLETION_ROUTE)
-          : history.push(ONBOARDING_METAMETRICS);
-
         trackEvent({
           category: MetaMetricsEventCategory.Onboarding,
           event: MetaMetricsEventName.WalletImported,
@@ -228,6 +226,11 @@ export default function CreatePassword({
             ),
           },
         });
+        if (isFirefox) {
+          history.push(ONBOARDING_COMPLETION_ROUTE);
+        } else {
+          history.push(ONBOARDING_METAMETRICS);
+        }
       } catch (error) {
         trackEvent({
           category: MetaMetricsEventCategory.Onboarding,
@@ -254,9 +257,15 @@ export default function CreatePassword({
           await createNewAccount(password);
         }
         if (socialLoginFlow) {
-          bufferedEndTrace({ name: TraceName.OnboardingNewSocialCreateWallet });
-          bufferedEndTrace({ name: TraceName.OnboardingJourneyOverall });
-          history.push(ONBOARDING_METAMETRICS);
+          if (isFirefox) {
+            history.push(ONBOARDING_COMPLETION_ROUTE);
+          } else {
+            bufferedEndTrace({
+              name: TraceName.OnboardingNewSocialCreateWallet,
+            });
+            bufferedEndTrace({ name: TraceName.OnboardingJourneyOverall });
+            history.push(ONBOARDING_METAMETRICS);
+          }
         } else {
           history.push(ONBOARDING_SECURE_YOUR_WALLET_ROUTE);
         }

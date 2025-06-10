@@ -183,7 +183,7 @@ describe('Actions', () => {
 
     it('should create KeyChain, vault and Backup in the background', async () => {
       const store = mockStore();
-      const mockKeyringsMetadata = [{ id: 'mock-keyring-id' }];
+      const mockKeyrings = [{ metadata: { id: 'mock-keyring-id' } }];
       const mockSeedPhrase = 'mock seed phrase';
       const mockEncodedSeedPhrase = Array.from(
         Buffer.from(mockSeedPhrase).values(),
@@ -195,7 +195,7 @@ describe('Actions', () => {
         );
       const createNewVaultAndKeychainStub =
         background.createNewVaultAndKeychain.callsFake((_, cb) =>
-          cb(null, mockKeyringsMetadata),
+          cb(null, mockKeyrings),
         );
       const getSeedPhraseStub = background.getSeedPhrase.callsFake(
         (_, __, cb) => cb(null, mockEncodedSeedPhrase),
@@ -217,7 +217,7 @@ describe('Actions', () => {
         createSeedPhraseBackupStub.calledOnceWith(
           'password',
           mockEncodedSeedPhrase,
-          mockKeyringsMetadata[0].id,
+          mockKeyrings[0].metadata.id,
         ),
       ).toStrictEqual(true);
     });
@@ -231,7 +231,7 @@ describe('Actions', () => {
     it('fetches all seed phrases from the metadata store, restores the vault and updates the SocialbackupMetadata state', async () => {
       const store = mockStore();
       const mockSeedPhrase = 'mock seed phrase';
-      const mockKeyringsMetadata = [{ id: 'mock-keyring-id' }];
+      const mockKeyrings = [{ metadata: { id: 'mock-keyring-id' } }];
       const mockEncodedSeedPhrase = Array.from(
         Buffer.from(mockSeedPhrase).values(),
       );
@@ -241,7 +241,7 @@ describe('Actions', () => {
       );
       const createNewVaultAndRestoreStub =
         background.createNewVaultAndRestore.callsFake((_, __, cb) =>
-          cb(null, mockKeyringsMetadata),
+          cb(null, mockKeyrings),
         );
 
       setBackgroundConnection(background);
@@ -306,7 +306,6 @@ describe('Actions', () => {
       await expect(
         store.dispatch(actions.restoreSocialBackupAndGetSeedPhrase('password')),
       ).rejects.toThrow('error');
-      console.log('store.getActions()', store.getActions());
       expect(store.getActions()).toStrictEqual(expectedActions);
     });
   });
@@ -2516,7 +2515,7 @@ describe('Actions', () => {
       const store = mockStore();
 
       await expect(
-        store.dispatch(actions.removeAndIgnoreNft(undefined, '55')),
+        store.dispatch(actions.removeAndIgnoreNft(undefined, '55', 'mainnet')),
       ).rejects.toThrow('MetaMask - Cannot ignore NFT without address');
     });
 
@@ -2524,7 +2523,9 @@ describe('Actions', () => {
       const store = mockStore();
 
       await expect(
-        store.dispatch(actions.removeAndIgnoreNft('Oxtest', undefined)),
+        store.dispatch(
+          actions.removeAndIgnoreNft('Oxtest', undefined, 'mainnet'),
+        ),
       ).rejects.toThrow('MetaMask - Cannot ignore NFT without tokenID');
     });
 
@@ -2536,7 +2537,7 @@ describe('Actions', () => {
       setBackgroundConnection(background);
 
       await expect(
-        store.dispatch(actions.removeAndIgnoreNft('Oxtest', '6')),
+        store.dispatch(actions.removeAndIgnoreNft('Oxtest', '6', 'mainnet')),
       ).rejects.toThrow(error);
     });
   });
@@ -3227,7 +3228,7 @@ describe('Actions', () => {
       const store = mockStore();
       const importMnemonicToVaultStub = sinon
         .stub()
-        .callsFake((_, __, cb) => cb(null, {}));
+        .callsFake((_, cb) => cb(null, {}));
       background.getApi.returns({
         importMnemonicToVault: importMnemonicToVaultStub,
       });

@@ -1,8 +1,6 @@
 /* eslint-disable @metamask/design-tokens/color-no-hex*/
-// TODO: Remove restricted import
-// eslint-disable-next-line import/no-restricted-paths
-import { getPlatform } from '../../../app/scripts/lib/util';
 import { PLATFORM_FIREFOX } from '../../../shared/constants/app';
+import { getBrowserName } from '../../../shared/modules/browser-runtime.utils';
 import { IconName } from '../../components/component-library';
 import {
   ADVANCED_ROUTE,
@@ -161,7 +159,7 @@ const SETTINGS_CONSTANTS = [
       t('overrideContentSecurityPolicyHeaderDescription'),
     route: `${ADVANCED_ROUTE}#override-content-security-policy-header`,
     icon: 'fas fa-sliders-h',
-    hidden: getPlatform() !== PLATFORM_FIREFOX,
+    hidden: getBrowserName() !== PLATFORM_FIREFOX,
   },
   {
     tabMessage: (t) => t('backupAndSync'),
@@ -203,8 +201,8 @@ const SETTINGS_CONSTANTS = [
   // securityAndPrivacy settingsRefs[2]
   {
     tabMessage: (t) => t('securityAndPrivacy'),
-    sectionMessage: (t) => t('securityChangePasswordChange'),
-    descriptionMessage: (t) => t('securityChangePasswordChange'),
+    sectionMessage: (t) => t('securityChangePassword'),
+    descriptionMessage: (t) => t('securityChangePassword'),
     route: SECURITY_PASSWORD_CHANGE_ROUTE,
     icon: 'fa fa-lock',
   },

@@ -10,8 +10,15 @@ const DEFAULT_GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID as string;
 const DEFAULT_APPLE_CLIENT_ID = process.env.APPLE_CLIENT_ID as string;
 const OAUTH_AUD = 'metamask';
 const MOCK_USER_ID = 'user-id';
+const MOCK_REDIRECT_URI = 'https://mocked-redirect-uri';
 const MOCK_JWT_TOKEN =
   'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InN3bmFtOTA5QGdtYWlsLmNvbSIsInN1YiI6InN3bmFtOTA5QGdtYWlsLmNvbSIsImlzcyI6Im1ldGFtYXNrIiwiYXVkIjoibWV0YW1hc2siLCJpYXQiOjE3NDUyMDc1NjYsImVhdCI6MTc0NTIwNzg2NiwiZXhwIjoxNzQ1MjA3ODY2fQ.nXRRLB7fglRll7tMzFFCU0u7Pu6EddqEYf_DMyRgOENQ6tJ8OLtVknNf83_5a67kl_YKHFO-0PEjvJviPID6xg';
+const MOCK_NONCE = 'mocked-nonce';
+const MOCK_STATE = JSON.stringify({
+  // eslint-disable-next-line camelcase
+  client_redirect_back_uri: MOCK_REDIRECT_URI,
+  nonce: MOCK_NONCE,
+});
 
 function getOAuthLoginEnvs(): OAuthLoginEnv {
   return {
@@ -24,31 +31,38 @@ function getOAuthLoginEnvs(): OAuthLoginEnv {
   };
 }
 
-const getRedirectUrlSpy = jest
-  .fn()
-  .mockReturnValue('https://mocked-redirect-uri');
-const launchWebAuthFlowSpy = jest
-  .fn()
-  .mockResolvedValue('https://mocked-redirect-uri?code=mocked-code');
+const getRedirectUrlSpy = jest.fn().mockReturnValue(MOCK_REDIRECT_URI);
+const launchWebAuthFlowSpy = jest.fn().mockImplementation((_options, cb) => {
+  return cb(`${MOCK_REDIRECT_URI}?code=mocked-code&state=${MOCK_STATE}`);
+});
+const generateCodeVerifierAndChallengeSpy = jest.fn().mockResolvedValue({
+  codeVerifier: 'mocked-code-verifier',
+  challenge: 'mocked-code-verifier-challenge',
+});
+const generateNonceSpy = jest.fn().mockReturnValue(MOCK_NONCE);
 
 const mockWebAuthenticator: WebAuthenticator = {
   getRedirectURL: getRedirectUrlSpy,
   launchWebAuthFlow: launchWebAuthFlowSpy,
+  generateCodeVerifierAndChallenge: generateCodeVerifierAndChallengeSpy,
+  generateNonce: generateNonceSpy,
 };
 
 describe('OAuthService', () => {
   beforeEach(() => {
     // mock the fetch call to auth-server
-    jest.spyOn(global, 'fetch').mockResolvedValue({
-      json: jest.fn().mockResolvedValue({
-        verifier_id: MOCK_USER_ID,
-        jwt_tokens: {
-          [OAUTH_AUD]: MOCK_JWT_TOKEN,
-        },
-      }),
-    });
-    // mock the Math.random to return a fixed value nonce
-    jest.spyOn(global.Math, 'random').mockReturnValue(0.1);
+    jest.spyOn(global, 'fetch').mockImplementation(
+      jest.fn(() => {
+        return Promise.resolve({
+          json: jest.fn().mockResolvedValue({
+            verifier_id: MOCK_USER_ID,
+            jwt_tokens: {
+              [OAUTH_AUD]: MOCK_JWT_TOKEN,
+            },
+          }),
+        });
+      }) as jest.Mock,
+    );
   });
 
   afterEach(() => {
@@ -67,12 +81,16 @@ describe('OAuthService', () => {
       AuthConnection.Google,
       mockWebAuthenticator.getRedirectURL(),
       getOAuthLoginEnvs(),
+      mockWebAuthenticator,
     );
 
-    expect(launchWebAuthFlowSpy).toHaveBeenCalledWith({
-      interactive: true,
-      url: googleLoginHandler.getAuthUrl(),
-    });
+    expect(launchWebAuthFlowSpy).toHaveBeenCalledWith(
+      {
+        interactive: true,
+        url: await googleLoginHandler.getAuthUrl(),
+      },
+      expect.any(Function),
+    );
   });
 
   it('should start the OAuth login process with `Apple`', async () => {
@@ -87,11 +105,15 @@ describe('OAuthService', () => {
       AuthConnection.Apple,
       mockWebAuthenticator.getRedirectURL(),
       getOAuthLoginEnvs(),
+      mockWebAuthenticator,
     );
 
-    expect(launchWebAuthFlowSpy).toHaveBeenCalledWith({
-      interactive: true,
-      url: appleLoginHandler.getAuthUrl(),
-    });
+    expect(launchWebAuthFlowSpy).toHaveBeenCalledWith(
+      {
+        interactive: true,
+        url: await appleLoginHandler.getAuthUrl(),
+      },
+      expect.any(Function),
+    );
   });
 });

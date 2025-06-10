@@ -5,7 +5,9 @@ import { useHistory } from 'react-router-dom';
 import {
   Box,
   Button,
+  ButtonSize,
   FormTextField,
+  FormTextFieldSize,
   Text,
   TextFieldType,
 } from '../../../../components/component-library';
@@ -29,12 +31,13 @@ import {
   MetaMetricsEventCategory,
   MetaMetricsEventName,
 } from '../../../../../shared/constants/metametrics';
+import { SECURITY_ROUTE } from '../../../../helpers/constants/routes';
 import ChangePasswordWarning from './change-password-warning';
 
 const ChangePasswordSteps = {
   VerifyCurrentPassword: 1,
   ChangePassword: 2,
-  CreatingPassword: 3,
+  ChangePasswordLoading: 3,
 };
 
 const ChangePassword = () => {
@@ -82,7 +85,7 @@ const ChangePassword = () => {
   const onChangePassword = async () => {
     try {
       setShowChangePasswordWarning(false);
-      setStep(ChangePasswordSteps.CreatingPassword);
+      setStep(ChangePasswordSteps.ChangePasswordLoading);
       await dispatch(changePassword(newPassword, currentPassword));
 
       // Track password changed event
@@ -95,18 +98,11 @@ const ChangePassword = () => {
       });
 
       // upon successful password change, go back to the settings page
-      history.goBack();
+      history.push(SECURITY_ROUTE);
     } catch (error) {
       console.error(error);
       setStep(ChangePasswordSteps.VerifyCurrentPassword);
     }
-  };
-
-  const onSubmitChangePasswordForm = () => {
-    if (!newPassword) {
-      return;
-    }
-    setShowChangePasswordWarning(true);
   };
 
   return (
@@ -119,7 +115,7 @@ const ChangePassword = () => {
           gap={6}
           justifyContent={JustifyContent.spaceBetween}
           height={BlockSize.Full}
-          onSubmit={(e) => {
+          onSubmit={(e: React.FormEvent<HTMLFormElement>) => {
             e.preventDefault();
             handleSubmitCurrentPassword();
           }}
@@ -129,9 +125,14 @@ const ChangePassword = () => {
             label={t('enterPasswordContinue')}
             placeholder={t('makeSureNoOneWatching')}
             textFieldProps={{ type: TextFieldType.Password }}
+            size={FormTextFieldSize.Lg}
             labelProps={{
               marginBottom: 1,
               children: t('enterPasswordContinue'),
+            }}
+            inputProps={{
+              autoFocus: true,
+              'data-testid': 'verify-current-password-input',
             }}
             value={currentPassword}
             error={isIncorrectPasswordError}
@@ -147,7 +148,9 @@ const ChangePassword = () => {
           <Button
             type="submit"
             block
+            size={ButtonSize.Lg}
             disabled={isIncorrectPasswordError || !currentPassword}
+            data-testid="verify-current-password-button"
           >
             {t('save')}
           </Button>
@@ -162,21 +165,30 @@ const ChangePassword = () => {
           gap={6}
           justifyContent={JustifyContent.spaceBetween}
           height={BlockSize.Full}
-          onSubmit={(e) => {
+          onSubmit={(e: React.FormEvent<HTMLFormElement>) => {
             e.preventDefault();
-            onSubmitChangePasswordForm();
+            setShowChangePasswordWarning(true);
           }}
         >
           <Box>
-            <PasswordForm onChange={(password) => setNewPassword(password)} />
+            <PasswordForm
+              onChange={(password) => setNewPassword(password)}
+              pwdInputTestId="change-password-input"
+              confirmPwdInputTestId="change-password-confirm-input"
+            />
           </Box>
-          <Button type="submit" disabled={!newPassword} block>
+          <Button
+            type="submit"
+            disabled={!currentPassword || !newPassword}
+            data-testid="change-password-button"
+            block
+          >
             {t('save')}
           </Button>
         </Box>
       )}
 
-      {step === ChangePasswordSteps.CreatingPassword && (
+      {step === ChangePasswordSteps.ChangePasswordLoading && (
         <Box
           display={Display.Flex}
           flexDirection={FlexDirection.Column}
@@ -186,10 +198,10 @@ const ChangePassword = () => {
           <div>{renderMascot()}</div>
           <Spinner className="change-password__spinner" />
           <Text variant={TextVariant.bodyLgMedium} marginBottom={4}>
-            {t('createPasswordCreating')}
+            {t('changePasswordLoading')}
           </Text>
           <Text variant={TextVariant.bodySm} color={TextColor.textAlternative}>
-            {t('createPasswordCreatingNote')}
+            {t('changePasswordLoadingNote')}
           </Text>
         </Box>
       )}

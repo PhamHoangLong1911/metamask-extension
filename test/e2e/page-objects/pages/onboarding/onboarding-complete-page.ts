@@ -9,12 +9,12 @@ class OnboardingCompletePage {
   };
 
   private readonly defaultPrivacySettingsButton = {
-    text: 'Manage default privacy settings',
+    text: 'Manage default settings',
     tag: 'button',
   };
 
   private readonly installCompleteMessage = {
-    text: 'Your MetaMask install is complete!',
+    text: 'Installation is complete!',
     tag: 'h2',
   };
 
@@ -25,17 +25,22 @@ class OnboardingCompletePage {
     '[data-testid="pin-extension-done"]';
 
   private readonly pinExtensionMessage = {
-    text: 'Click browser extension icon to access it instantly',
+    text: 'Click Chrome extension icon to access it instantly',
     tag: 'p',
   };
 
-  private readonly pinExtensionNextButton =
-    '[data-testid="pin-extension-next"]';
-
   private readonly walletReadyMessage = {
-    text: 'Your wallet is ready',
+    text: 'Your wallet is ready!',
     tag: 'h2',
   };
+
+  private readonly remindMeLaterButton = {
+    text: 'We’ll remind you later',
+    tag: 'h2',
+  };
+
+  private readonly manageDefaultSettingsButton =
+    '[data-testid="manage-default-settings"]';
 
   constructor(driver: Driver) {
     this.driver = driver;
@@ -44,7 +49,7 @@ class OnboardingCompletePage {
   async check_pageIsLoaded(): Promise<void> {
     try {
       await this.driver.waitForMultipleSelectors([
-        this.defaultPrivacySettingsButton,
+        this.manageDefaultSettingsButton,
         this.onboardingCompleteDoneButton,
       ]);
     } catch (e) {
@@ -67,11 +72,7 @@ class OnboardingCompletePage {
     console.log('Complete onboarding');
     await this.clickCreateWalletDoneButton();
     await this.driver.waitForSelector(this.installCompleteMessage);
-    await this.driver.clickElement(this.pinExtensionNextButton);
-
-    // Wait until the onboarding carousel has stopped moving otherwise the click has no effect.
     await this.driver.waitForSelector(this.pinExtensionMessage);
-    await this.driver.waitForElementToStopMoving(this.pinExtensionDoneButton);
     await this.driver.clickElementAndWaitToDisappear(
       this.pinExtensionDoneButton,
     );
@@ -79,16 +80,16 @@ class OnboardingCompletePage {
 
   async navigateToDefaultPrivacySettings(): Promise<void> {
     await this.driver.clickElementAndWaitToDisappear(
-      this.defaultPrivacySettingsButton,
+      this.manageDefaultSettingsButton,
     );
-  }
-
-  async check_congratulationsMessageIsDisplayed(): Promise<void> {
-    await this.driver.waitForSelector(this.congratulationsMessage);
   }
 
   async check_walletReadyMessageIsDisplayed(): Promise<void> {
     await this.driver.waitForSelector(this.walletReadyMessage);
+  }
+
+  async check_remindMeLaterButtonIsDisplayed(): Promise<void> {
+    await this.driver.waitForSelector(this.remindMeLaterButton);
   }
 }
 

@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events';
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { SeedlessOnboardingControllerError } from '@metamask/seedless-onboarding-controller';
+import { SeedlessOnboardingControllerErrorMessage } from '@metamask/seedless-onboarding-controller';
 import {
   Text,
   FormTextField,
@@ -26,10 +26,7 @@ import {
   BackgroundColor,
 } from '../../helpers/constants/design-system';
 import Mascot from '../../components/ui/mascot';
-import {
-  DEFAULT_ROUTE,
-  ONBOARDING_CREATE_PASSWORD_ROUTE,
-} from '../../helpers/constants/routes';
+import { DEFAULT_ROUTE } from '../../helpers/constants/routes';
 import {
   MetaMetricsContextProp,
   MetaMetricsEventCategory,
@@ -140,10 +137,10 @@ class UnlockPage extends Component {
     event.preventDefault();
     event.stopPropagation();
 
-    const { password } = this.state;
     const { onSubmit, socialLoginFlow } = this.props;
+    const { password, isSubmitting } = this.state;
 
-    if (password === '' || this.submitting) {
+    if (password === '' || isSubmitting) {
       return;
     }
 
@@ -209,7 +206,6 @@ class UnlockPage extends Component {
     const { message, data } = error;
     let finalErrorMessage = message;
     let errorReason;
-    let isLocked = false;
 
     // Track wallet rehydration failed for social login users
     if (socialLoginFlow) {
@@ -236,31 +232,22 @@ class UnlockPage extends Component {
 
     switch (message) {
       case 'Incorrect password':
-      case SeedlessOnboardingControllerError.IncorrectPassword:
+      case SeedlessOnboardingControllerErrorMessage.IncorrectPassword:
         finalErrorMessage = t('unlockPageIncorrectPassword');
         errorReason = 'incorrect_password';
         break;
-      case SeedlessOnboardingControllerError.TooManyLoginAttempts:
-        isLocked = true;
+      case SeedlessOnboardingControllerErrorMessage.TooManyLoginAttempts:
+        this.setState({ isLocked: true });
 
-        // TODO: check if we need to remove this
-        if (data.isPermanent) {
-          finalErrorMessage = t('unlockPageTooManyFailedAttemptsPermanent');
-        } else {
-          const initialRemainingTime = data.remainingTime;
-          finalErrorMessage = t('unlockPageTooManyFailedAttempts', [
-            <FormattedCounter
-              key="unlockPageTooManyFailedAttempts"
-              remainingTime={initialRemainingTime}
-              unlock={() => this.setState({ isLocked: false, error: '' })}
-            />,
-          ]);
-        }
+        finalErrorMessage = t('unlockPageTooManyFailedAttempts', [
+          <FormattedCounter
+            key="unlockPageTooManyFailedAttempts"
+            remainingTime={data.remainingTime}
+            unlock={() => this.setState({ isLocked: false, error: '' })}
+          />,
+        ]);
         errorReason = 'too_many_login_attempts';
         break;
-      case 'Seed phrase not found':
-        this.props.history.push(ONBOARDING_CREATE_PASSWORD_ROUTE);
-        return;
       default:
         finalErrorMessage = message;
         break;
@@ -277,7 +264,7 @@ class UnlockPage extends Component {
         },
       });
     }
-    this.setState({ error: finalErrorMessage, isLocked });
+    this.setState({ error: finalErrorMessage });
   };
 
   handleInputChange(event) {
@@ -296,19 +283,19 @@ class UnlockPage extends Component {
   renderMascot = () => {
     if (isFlask()) {
       return (
-        <img src="./images/logo/metamask-fox.svg" width="120" height="120" />
+        <img src="./images/logo/metamask-fox.svg" width="115" height="115" />
       );
     }
     if (isBeta()) {
       return (
-        <img src="./images/logo/metamask-fox.svg" width="120" height="120" />
+        <img src="./images/logo/metamask-fox.svg" width="115" height="115" />
       );
     }
     return (
       <Mascot
         animationEventEmitter={this.animationEventEmitter}
-        width="120"
-        height="120"
+        width="170"
+        height="170"
       />
     );
   };
@@ -354,7 +341,7 @@ class UnlockPage extends Component {
   };
 
   render() {
-    const { password, error, isLocked, isSubmitting, showResetPasswordModal } =
+    const { password, error, isLocked, showResetPasswordModal, isSubmitting } =
       this.state;
     const { t } = this.context;
 
@@ -413,7 +400,11 @@ class UnlockPage extends Component {
             width={BlockSize.Full}
             alignItems={AlignItems.center}
           >
-            <Box marginTop={6} className="unlock-page__mascot-container">
+            <Box
+              marginTop={6}
+              marginBottom={isBeta() || isFlask() ? 6 : 0}
+              className="unlock-page__mascot-container"
+            >
               {this.renderMascot()}
               {isBeta() ? (
                 <Box className="unlock-page__mascot-container__beta">
@@ -479,13 +470,13 @@ class UnlockPage extends Component {
               gap={4}
             >
               <Button
+                loading={isSubmitting}
                 variant={ButtonVariant.Primary}
                 size={ButtonSize.Lg}
                 block
                 type="submit"
                 data-testid="unlock-submit"
                 disabled={!password || isLocked || isSubmitting}
-                loading={isSubmitting}
               >
                 {this.context.t('unlock')}
               </Button>

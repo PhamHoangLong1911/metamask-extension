@@ -186,9 +186,7 @@ export default function OnboardingWelcome({
             op: TraceOperation.OnboardingUserJourney,
             parentContext: onboardingParentContext.current,
           });
-          ///: BEGIN:ONLY_INCLUDE_IF(build-main,build-beta,build-flask)
           history.push(ONBOARDING_CREATE_PASSWORD_ROUTE);
-          ///: END:ONLY_INCLUDE_IF
         } else {
           history.push(
             `${ONBOARDING_ACCOUNT_EXIST}?socialConnectionType=${socialConnectionType}`,
@@ -308,6 +306,6 @@ export default function OnboardingWelcome({
 }
 
 OnboardingWelcome.propTypes = {
-  pageState: PropTypes.oneOf(Object.values(WelcomePageState)).isRequired,
+  pageState: PropTypes.oneOf(Object.values(WelcomePageState)),
   setPageState: PropTypes.func.isRequired,
 };

@@ -1,8 +1,7 @@
 import React, { useContext } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useHistory } from 'react-router-dom';
-// eslint-disable-next-line import/no-restricted-paths
-import { getPlatform } from '../../../../app/scripts/lib/util';
+
 import {
   Display,
   FlexDirection,
@@ -48,8 +47,9 @@ import { discardBufferedTraces } from '../../../../shared/lib/trace';
 import { submitRequestToBackground } from '../../../store/background-connection';
 
 import { FirstTimeFlowType } from '../../../../shared/constants/onboarding';
+import { getBrowserName } from '../../../../shared/modules/browser-runtime.utils';
 
-const isFirefox = getPlatform() === PLATFORM_FIREFOX;
+const isFirefox = getBrowserName() === PLATFORM_FIREFOX;
 
 export default function OnboardingMetametrics() {
   const t = useI18nContext();
@@ -63,7 +63,11 @@ export default function OnboardingMetametrics() {
   let nextRouteByBrowser = useSelector(
     getFirstTimeFlowTypeRouteAfterMetaMetricsOptIn,
   );
-  if (isFirefox && firstTimeFlowType !== FirstTimeFlowType.restore) {
+  if (
+    isFirefox &&
+    firstTimeFlowType !== FirstTimeFlowType.restore &&
+    firstTimeFlowType !== FirstTimeFlowType.socialImport
+  ) {
     nextRouteByBrowser = ONBOARDING_WELCOME_ROUTE;
   }
 
@@ -100,6 +104,7 @@ export default function OnboardingMetametrics() {
     await dispatch(setDataCollectionForMarketing(false));
     await submitRequestToBackground('clearEventsAfterMetricsOptIn');
     discardBufferedTraces();
+    await submitRequestToBackground('clearEventsAfterMetricsOptIn');
     history.push(nextRouteByBrowser);
   };
 

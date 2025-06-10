@@ -102,7 +102,6 @@ import {
 import { MultichainNetworks } from '../../../../shared/constants/multichain/networks';
 import {
   MultichainWalletSnapClient,
-  MultichainWalletSnapOptions,
   WalletClientType,
   useMultichainWalletSnapClient,
 } from '../../../hooks/accounts/useMultichainWalletSnapClient';
@@ -120,10 +119,12 @@ import {
 import { CreateEthAccount } from '../create-eth-account';
 ///: BEGIN:ONLY_INCLUDE_IF(multichain)
 import { CreateSnapAccount } from '../create-snap-account';
+import { CreateAccountSnapOptions } from '../../../../shared/lib/accounts';
 ///: END:ONLY_INCLUDE_IF
 import { ImportAccount } from '../import-account';
 import { SrpList } from '../multi-srp/srp-list';
 import { INSTITUTIONAL_WALLET_SNAP_ID } from '../../../../shared/lib/accounts/institutional-wallet-snap';
+import { useSyncSRPs } from '../../../hooks/social-sync/useSyncSRPs';
 import { HiddenAccountList } from './hidden-account-list';
 
 // TODO: Should we use an enum for this instead?
@@ -141,8 +142,6 @@ const ACTION_MODES = {
   ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
   // Displays the add account form controls (for bitcoin account)
   ADD_BITCOIN: 'add-bitcoin',
-  // Same but for testnet
-  ADD_BITCOIN_TESTNET: 'add-bitcoin-testnet',
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(solana)
   // Displays the add account form controls (for solana account)
@@ -165,10 +164,6 @@ const SNAP_CLIENT_CONFIG_MAP: Record<
   [ACTION_MODES.ADD_BITCOIN]: {
     clientType: WalletClientType.Bitcoin,
     chainId: MultichainNetworks.BITCOIN,
-  },
-  [ACTION_MODES.ADD_BITCOIN_TESTNET]: {
-    clientType: WalletClientType.Bitcoin,
-    chainId: MultichainNetworks.BITCOIN_TESTNET,
   },
   [ACTION_MODES.ADD_SOLANA]: {
     clientType: WalletClientType.Solana,
@@ -240,6 +235,7 @@ export const AccountListMenu = ({
 }: AccountListMenuProps) => {
   const t = useI18nContext();
   const trackEvent = useContext(MetaMetricsContext);
+  const { loading: syncSRPsLoading } = useSyncSRPs();
   const hdEntropyIndex = useSelector(getHDEntropyIndex);
   useEffect(() => {
     endTrace({ name: TraceName.AccountList });
@@ -323,7 +319,7 @@ export const AccountListMenu = ({
 
   const handleMultichainSnapAccountCreation = async (
     client: MultichainWalletSnapClient,
-    _options: MultichainWalletSnapOptions,
+    _options: CreateAccountSnapOptions,
     action: ActionMode,
   ) => {
     trackEvent({
@@ -502,6 +498,7 @@ export const AccountListMenu = ({
 
   return (
     <Modal isOpen onClose={onClose}>
+      {syncSRPsLoading && <p>Syncing seed phrases...</p>}
       <ModalOverlay />
       <ModalContent
         className="multichain-account-menu-popover"
@@ -633,6 +630,7 @@ export const AccountListMenu = ({
                         bitcoinWalletSnapClient,
                         {
                           scope: MultichainNetworks.BITCOIN,
+                          entropySource: primaryKeyring.metadata.id,
                         },
                         ACTION_MODES.ADD_BITCOIN,
                       );
@@ -666,13 +664,7 @@ export const AccountListMenu = ({
                       event:
                         MetaMetricsEventName.ImportSecretRecoveryPhraseClicked,
                     });
-                    if (getEnvironmentType() === ENVIRONMENT_TYPE_POPUP) {
-                      global.platform.openExtensionInBrowser?.(
-                        IMPORT_SRP_ROUTE,
-                      );
-                    } else {
-                      history.push(IMPORT_SRP_ROUTE);
-                    }
+                    history.push(IMPORT_SRP_ROUTE);
                     onClose();
                   }}
                   data-testid="multichain-account-menu-popover-import-srp"
