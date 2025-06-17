@@ -14,7 +14,10 @@ import Box from '../../components/ui/box';
 import { Text } from '../../components/component-library';
 import { TextVariant, TextColor } from '../../helpers/constants/design-system';
 import ZENDESK_URLS from '../../helpers/constants/zendesk-url';
-import { MetaMetricsEventCategory } from '../../../shared/constants/metametrics';
+import {
+  MetaMetricsEventCategory,
+  MetaMetricsEventName,
+} from '../../../shared/constants/metametrics';
 import { FirstTimeFlowType } from '../../../shared/constants/onboarding';
 import { isSocialLoginFlow } from '../../selectors';
 
@@ -62,11 +65,7 @@ class RestoreVaultPage extends Component {
 
     this.context.trackEvent({
       category: MetaMetricsEventCategory.Retention,
-      event: 'onboardingRestoredVault',
-      properties: {
-        action: 'userEntersSeedPhrase',
-        legacy_event: true,
-      },
+      event: MetaMetricsEventName.WalletRestored,
     });
 
     history.push(DEFAULT_ROUTE);
