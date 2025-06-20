@@ -2,6 +2,7 @@ import EventEmitter from 'events';
 import React, { useState, useContext } from 'react';
 import { useDispatch } from 'react-redux';
 import { useHistory } from 'react-router-dom';
+import zxcvbn from 'zxcvbn';
 import {
   Box,
   Button,
@@ -32,6 +33,7 @@ import {
   MetaMetricsEventName,
 } from '../../../../../shared/constants/metametrics';
 import { SECURITY_ROUTE } from '../../../../helpers/constants/routes';
+import { PASSWORD_MIN_LENGTH } from '../../../../helpers/constants/common';
 import ChangePasswordWarning from './change-password-warning';
 
 const ChangePasswordSteps = {
@@ -55,6 +57,19 @@ const ChangePassword = () => {
   const [newPassword, setNewPassword] = useState('');
   const [showChangePasswordWarning, setShowChangePasswordWarning] =
     useState(false);
+
+  const getPasswordStrengthCategory = (passwordValue: string) => {
+    const isTooShort = passwordValue.length < PASSWORD_MIN_LENGTH;
+    const { score } = zxcvbn(passwordValue);
+
+    if (isTooShort || score < 3) {
+      return 'weak';
+    }
+    if (score === 3) {
+      return 'average';
+    }
+    return 'strong';
+  };
 
   const renderMascot = () => {
     if (isFlask()) {
@@ -94,6 +109,7 @@ const ChangePassword = () => {
         event: MetaMetricsEventName.PasswordChanged,
         properties: {
           biometrics_enabled: false,
+          password_strength: getPasswordStrengthCategory(newPassword),
         },
       });
 
