@@ -188,9 +188,7 @@ export default function OnboardingWelcome({
           });
           history.push(ONBOARDING_CREATE_PASSWORD_ROUTE);
         } else {
-          history.push(
-            `${ONBOARDING_ACCOUNT_EXIST}?socialConnectionType=${socialConnectionType}`,
-          );
+          history.push(ONBOARDING_ACCOUNT_EXIST);
         }
       } catch (error) {
         handleSocialLoginError(error, socialConnectionType);
@@ -242,9 +240,7 @@ export default function OnboardingWelcome({
         });
 
         if (isNewUser) {
-          history.push(
-            `${ONBOARDING_ACCOUNT_NOT_FOUND}?socialConnectionType=${socialConnectionType}`,
-          );
+          history.push(ONBOARDING_ACCOUNT_NOT_FOUND);
         } else {
           bufferedTrace({
             name: TraceName.OnboardingExistingSocialLogin,
