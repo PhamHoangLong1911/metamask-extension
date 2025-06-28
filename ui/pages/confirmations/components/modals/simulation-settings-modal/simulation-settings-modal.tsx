@@ -250,11 +250,13 @@ function Slippage({
       </Text>
       <Box display={Display.Flex} flexDirection={FlexDirection.Row} gap={2}>
         <Pill
+          dataTestId="simulation-settings-modal-slippage-default"
           text={`${defaultSlippage}%`}
           isSelected={!isCustomSlippage}
           onClick={handleDefaultSlippageClick}
         />
         <Pill
+          dataTestId="simulation-settings-modal-slippage-custom"
           text={t('simulationSettingsModalEnforceSlippageCustom')}
           isSelected={isCustomSlippage}
           onClick={handleCustomSlippageClick}
@@ -262,6 +264,7 @@ function Slippage({
       </Box>
       {isCustomSlippage && (
         <TextField
+          data-testid="simulation-settings-modal-slippage-custom-input"
           type={TextFieldType.Number}
           onChange={handleCustomSlippageChange}
           value={customSlippage}
@@ -291,16 +294,19 @@ function Section({ children }: { children: React.ReactNode | string }) {
 }
 
 function Pill({
+  dataTestId,
   isSelected = false,
   onClick,
   text,
 }: {
+  dataTestId?: string;
   isSelected?: boolean;
   onClick?: () => void;
   text: string;
 }) {
   return (
     <Box
+      data-testid={dataTestId}
       display={Display.Flex}
       alignItems={AlignItems.center}
       justifyContent={JustifyContent.center}
