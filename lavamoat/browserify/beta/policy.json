@@ -2565,9 +2565,6 @@
       }
     },
     "viem>ox>@noble/curves": {
-      "globals": {
-        "TextEncoder": true
-      },
       "packages": {
         "@noble/hashes": true
       }
@@ -2944,7 +2941,8 @@
         "Intl.Collator": true,
         "TextEncoder": true,
         "crypto.subtle.digest": true,
-        "crypto.subtle.exportKey": true
+        "crypto.subtle.exportKey": true,
+        "crypto.subtle.importKey": true
       },
       "packages": {
         "@metamask/multichain-network-controller>@solana/addresses>@solana/assertions": true,
@@ -2958,13 +2956,14 @@
         "Intl.Collator": true,
         "TextEncoder": true,
         "crypto.subtle.digest": true,
-        "crypto.subtle.exportKey": true
+        "crypto.subtle.exportKey": true,
+        "crypto.subtle.importKey": true
       },
       "packages": {
-        "@metamask/bridge-controller>@metamask/multichain-network-controller>@solana/addresses>@solana/assertions": true,
-        "@metamask/bridge-controller>@metamask/multichain-network-controller>@solana/addresses>@solana/codecs-core": true,
-        "@metamask/bridge-controller>@metamask/multichain-network-controller>@solana/addresses>@solana/codecs-strings": true,
-        "@metamask/bridge-controller>@metamask/multichain-network-controller>@solana/addresses>@solana/errors": true
+        "@metamask/multichain-network-controller>@solana/addresses>@solana/assertions": true,
+        "@metamask/multichain-network-controller>@solana/addresses>@solana/codecs-core": true,
+        "@metamask/multichain-network-controller>@solana/addresses>@solana/codecs-strings": true,
+        "@metamask/multichain-network-controller>@solana/addresses>@solana/errors": true
       }
     },
     "@solana/addresses>@solana/assertions": {
@@ -2985,15 +2984,6 @@
         "@metamask/multichain-network-controller>@solana/addresses>@solana/errors": true
       }
     },
-    "@metamask/bridge-controller>@metamask/multichain-network-controller>@solana/addresses>@solana/assertions": {
-      "globals": {
-        "crypto": true,
-        "isSecureContext": true
-      },
-      "packages": {
-        "@metamask/bridge-controller>@metamask/multichain-network-controller>@solana/addresses>@solana/errors": true
-      }
-    },
     "@solana/addresses>@solana/codecs-core": {
       "packages": {
         "@solana/addresses>@solana/errors": true
@@ -3002,11 +2992,6 @@
     "@metamask/multichain-network-controller>@solana/addresses>@solana/codecs-core": {
       "packages": {
         "@metamask/multichain-network-controller>@solana/addresses>@solana/errors": true
-      }
-    },
-    "@metamask/bridge-controller>@metamask/multichain-network-controller>@solana/addresses>@solana/codecs-core": {
-      "packages": {
-        "@metamask/bridge-controller>@metamask/multichain-network-controller>@solana/addresses>@solana/errors": true
       }
     },
     "@solana/addresses>@solana/codecs-strings": {
@@ -3033,29 +3018,12 @@
         "@metamask/multichain-network-controller>@solana/addresses>@solana/errors": true
       }
     },
-    "@metamask/bridge-controller>@metamask/multichain-network-controller>@solana/addresses>@solana/codecs-strings": {
-      "globals": {
-        "TextDecoder": true,
-        "TextEncoder": true,
-        "atob": true,
-        "btoa": true
-      },
-      "packages": {
-        "@metamask/bridge-controller>@metamask/multichain-network-controller>@solana/addresses>@solana/codecs-core": true,
-        "@metamask/bridge-controller>@metamask/multichain-network-controller>@solana/addresses>@solana/errors": true
-      }
-    },
     "@solana/addresses>@solana/errors": {
       "globals": {
         "btoa": true
       }
     },
     "@metamask/multichain-network-controller>@solana/addresses>@solana/errors": {
-      "globals": {
-        "btoa": true
-      }
-    },
-    "@metamask/bridge-controller>@metamask/multichain-network-controller>@solana/addresses>@solana/errors": {
       "globals": {
         "btoa": true
       }
