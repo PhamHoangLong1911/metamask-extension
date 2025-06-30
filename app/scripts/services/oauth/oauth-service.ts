@@ -43,8 +43,12 @@ export default class OAuthService {
   ): Promise<OAuthLoginResult> {
     // request the identity permission from the user
     // 'identity' permission is required for the OAuth login
+    console.log(`GIGEL [identity auth] requesting identity permission`);
     const permissionGranted =
       await this.#webAuthenticator.requestIdentityPermission();
+    console.log(
+      `GIGEL [identity auth] identity permission granted: ${permissionGranted}`,
+    );
     if (!permissionGranted) {
       throw new Error(OAuthErrorMessages.PERMISSION_NOT_GRANTED_ERROR);
     }
@@ -58,7 +62,14 @@ export default class OAuthService {
     );
 
     try {
-      return this.#handleOAuthLogin(loginHandler);
+      console.log(
+        `GIGEL [identity auth] starting OAuth login for ${authConnection}`,
+        loginHandler,
+      );
+      const result = await this.#handleOAuthLogin(loginHandler);
+      console.log(`GIGEL [identity auth] OAuth login result:`, result);
+
+      return result;
     } catch (error) {
       if (this.#isUserCancelledLoginError()) {
         throw new Error(OAuthErrorMessages.USER_CANCELLED_LOGIN_ERROR);
@@ -80,14 +91,21 @@ export default class OAuthService {
     refreshToken: string;
   }): Promise<{ idTokens: string[] }> {
     const { connection, refreshToken } = options;
+    console.log(
+      `GIGEL [identity auth] getting new token for ${connection} and refresh token: ${refreshToken}`,
+    );
     const loginHandler = createLoginHandler(
       connection,
       this.#env,
       this.#webAuthenticator,
     );
 
+    console.log(`GIGEL [identity auth] login handler created:`, loginHandler);
+
     const refreshTokenData = await loginHandler.refreshAuthToken(refreshToken);
+    console.log(`GIGEL [identity auth] refresh token data:`, refreshTokenData);
     const idToken = refreshTokenData.id_token;
+    console.log(`GIGEL [identity auth] new ID token: ${idToken}`);
 
     return {
       idTokens: [idToken],
@@ -155,7 +173,11 @@ export default class OAuthService {
    * @returns The login result.
    */
   async #handleOAuthLogin(loginHandler: BaseLoginHandler) {
+    console.log(
+      `GIGEL [identity auth] getting auth URL for ${loginHandler.authConnection}`,
+    );
     const authUrl = await loginHandler.getAuthUrl();
+    console.log(`GIGEL [identity auth] auth URL: ${authUrl}`);
 
     // launch the web auth flow to get the Authorization Code from the social login provider
     const redirectUrlFromOAuth = await new Promise<string>(
@@ -171,16 +193,23 @@ export default class OAuthService {
               if (responseUrl) {
                 try {
                   loginHandler.validateState(responseUrl);
+                  console.log(
+                    `GIGEL [identity auth] OAuth response URL: ${responseUrl}`,
+                  );
                   resolve(responseUrl);
                 } catch (error) {
                   reject(error);
                 }
               } else {
+                console.error('GIGEL [identity auth] redirectUrl is null');
                 reject(
                   new Error(OAuthErrorMessages.NO_REDIRECT_URL_FOUND_ERROR),
                 );
               }
             } catch (error: unknown) {
+              console.error(
+                `GIGEL [identity auth] Error handling OAuth response: ${error}`,
+              );
               reject(error);
             }
           },
@@ -188,11 +217,15 @@ export default class OAuthService {
       },
     );
 
+    console.log(
+      `GIGEL [identity auth] handling OAuth response for ${loginHandler.authConnection}`,
+    );
     // handle the OAuth response from the social login provider and get the Jwt Token in exchange
     const loginResult = await this.#handleOAuthResponse(
       loginHandler,
       redirectUrlFromOAuth,
     );
+    console.log(`GIGEL [identity auth] OAuth login result:`, loginResult);
     return loginResult;
   }
 
@@ -221,6 +254,7 @@ export default class OAuthService {
         : null;
 
     const res = await this.#getAuthIdToken(loginHandler, authCode);
+    console.log(`GIGEL [identity auth] got OAuthLoginResult:`, res);
     return res;
   }
 
@@ -249,9 +283,16 @@ export default class OAuthService {
       groupedAuthConnectionId = this.#env.appleGrouppedAuthConnectionId;
     }
 
+    console.log(
+      `GIGEL [identity auth] getting auth ID token for auth code: ${authCode}`,
+    );
+
     const authTokenData = await loginHandler.getAuthIdToken(authCode);
+    console.log(`GIGEL [identity auth] got auth token data:`, authTokenData);
     const idToken = authTokenData.id_token;
+    console.log(`GIGEL [identity auth] got ID token: ${idToken}`);
     const userInfo = await loginHandler.getUserInfo(idToken);
+    console.log(`GIGEL [identity auth] got user info:`, userInfo);
 
     return {
       authConnectionId,

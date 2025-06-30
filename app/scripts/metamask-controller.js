@@ -4651,13 +4651,34 @@ export default class MetamaskController extends EventEmitter {
    * @returns {Promise<boolean>} true if user has not completed the seedless onboarding flow, false otherwise
    */
   async startOAuthLogin(authConnection) {
+    console.log(`GIGEL starting social login with provider: ${authConnection}`);
+
     const oauth2LoginResult = await this.oauthService.startOAuthLogin(
       authConnection,
     );
+    console.log(`GIGEL oAuthLoginResult:`, oauth2LoginResult);
 
     const { isNewUser } = await this.seedlessOnboardingController.authenticate(
       oauth2LoginResult,
     );
+
+    console.log(`GIGEL isNewUser:`, isNewUser);
+    // do this after the authentication to avoid storing the token in case of exceptions
+    if (oauth2LoginResult) {
+      try {
+        console.log(
+          `GIGEL ingesting social login token:`,
+          oauth2LoginResult?.idTokens?.[0],
+        );
+        this.authenticationController.ingestSocialLoginToken(
+          oauth2LoginResult?.idTokens?.[0],
+        );
+        console.log(`GIGEL social login token ingested successfully`);
+      } catch (_) {
+        // nop. should not block any flows if the token ingestion fails
+        console.warn(`GIGEL failed to ingest social login token`, _);
+      }
+    }
 
     return isNewUser;
   }
