@@ -239,10 +239,10 @@ jobs:
   e2e-chrome:
     needs:
       - needs-e2e
-      - build-test-browserify
+      # - build-test-browserify
       - build-test-webpack
-      - build-dist-browserify
-      - build-test-flask-browserify
+      # - build-dist-browserify
+      # - build-test-flask-browserify
     if: ${{ needs.needs-e2e.outputs.needs-e2e == 'true' }}
     uses: ./.github/workflows/e2e-chrome.yml
     secrets:

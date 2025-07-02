@@ -26,6 +26,7 @@ function parseIntOrUndefined(value: string | undefined): number | undefined {
 // Alter the manifest with CI environment variables and custom flags
 export async function setManifestFlags(flags: ManifestFlags = {}) {
   if (process.env.CI) {
+    console.log('Setting manifest flags for CI environment');
     flags.ci = {
       enabled: true,
       branch: process.env.BRANCH,
@@ -34,6 +35,7 @@ export async function setManifestFlags(flags: ManifestFlags = {}) {
       matrixIndex: parseIntOrUndefined(process.env.MATRIX_INDEX),
       prNumber: parseIntOrUndefined(process.env.PR_NUMBER),
     };
+    console.log('CI flags:', flags.ci);
 
     const additionalManifestFlags = await fetchManifestFlagsFromPRAndGit();
     merge(flags, additionalManifestFlags);
