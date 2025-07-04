@@ -356,7 +356,7 @@ function publishBatchSmartTransactionHook({
     getSmartTransactionCommonParams(flatState, transactionMeta.chainId);
 
   if (!isSmartTransaction) {
-    return {};
+    return undefined;
   }
 
   return submitBatchSmartTransactionHook({
