@@ -76,7 +76,6 @@ import {
   getNetworkDiscoverButtonEnabled,
   getAllChainsToPoll,
   getEnabledNetworksByNamespace,
-  isGlobalNetworkSelectorRemoved,
 } from '../../../selectors';
 import ToggleButton from '../../ui/toggle-button';
 import {
@@ -359,13 +358,10 @@ export const NetworkListMenu = ({ onClose }: NetworkListMenuProps) => {
     if (Object.keys(tokenNetworkFilter || {}).length <= 1) {
       dispatch(setTokenNetworkFilter({ [hexChainId]: true }));
     } else {
-      const allOpts = Object.keys(evmNetworks).reduce(
-        (acc, id) => {
-          acc[id] = true;
-          return acc;
-        },
-        {} as Record<string, boolean>,
-      );
+      const allOpts = Object.keys(evmNetworks).reduce((acc, id) => {
+        acc[id] = true;
+        return acc;
+      }, {} as Record<string, boolean>);
       dispatch(setTokenNetworkFilter(allOpts));
     }
 
@@ -537,18 +533,12 @@ export const NetworkListMenu = ({ onClose }: NetworkListMenuProps) => {
             }
           : undefined,
         onRpcSelect: () => {
-          if (isGlobalNetworkSelectorRemoved) {
-            history.push('/select-rpc', {
+          setActionMode(ACTION_MODE.SELECT_RPC);
+          dispatch(
+            setEditedNetwork({
               chainId: hexChainId,
-            });
-          } else {
-            setActionMode(ACTION_MODE.SELECT_RPC);
-            dispatch(
-              setEditedNetwork({
-                chainId: hexChainId,
-              }),
-            );
-          }
+            }),
+          );
         },
       };
     },
