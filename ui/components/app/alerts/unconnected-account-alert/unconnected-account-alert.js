@@ -17,7 +17,7 @@ import {
 } from '../../../../selectors';
 import { isExtensionUrl, getURLHost } from '../../../../helpers/utils/util';
 import Popover from '../../../ui/popover';
-import Button from '../../../ui/button';
+import { Button, ButtonVariant } from '../../../component-library';
 import Checkbox from '../../../ui/check-box';
 import Tooltip from '../../../ui/tooltip';
 import ConnectedAccountsList from '../../connected-accounts-list';
@@ -87,7 +87,7 @@ const UnconnectedAccountAlert = () => {
         <Button
           disabled={alertState === LOADING}
           onClick={onClose}
-          type="primary"
+          variant={ButtonVariant.Primary}
           className="unconnected-account-alert__dismiss-button"
         >
           {t('dismiss')}
