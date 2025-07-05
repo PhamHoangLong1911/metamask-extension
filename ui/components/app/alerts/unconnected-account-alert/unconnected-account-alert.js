@@ -17,12 +17,18 @@ import {
 } from '../../../../selectors';
 import { isExtensionUrl, getURLHost } from '../../../../helpers/utils/util';
 import Popover from '../../../ui/popover';
-import { Button, ButtonVariant } from '../../../component-library';
+
 import Checkbox from '../../../ui/check-box';
 import Tooltip from '../../../ui/tooltip';
 import ConnectedAccountsList from '../../connected-accounts-list';
 import { useI18nContext } from '../../../../hooks/useI18nContext';
-import { Icon, IconName, Text } from '../../../component-library';
+import {
+  Icon,
+  IconName,
+  Text,
+  Button,
+  ButtonVariant,
+} from '../../../component-library';
 
 const { ERROR, LOADING } = ALERT_STATE;
 
