@@ -94,7 +94,6 @@ const UnconnectedAccountAlert = () => {
           disabled={alertState === LOADING}
           onClick={onClose}
           variant={ButtonVariant.Primary}
-          className="unconnected-account-alert__dismiss-button"
         >
           {t('dismiss')}
         </Button>
