@@ -45,9 +45,11 @@ export default class LoadingNetworkScreen extends PureComponent {
     rollbackToPreviousProvider: PropTypes.func,
     isNetworkLoading: PropTypes.bool,
     showDeprecatedRpcUrlWarning: PropTypes.bool,
+    onDisplayed: PropTypes.func,
   };
 
   componentDidMount = () => {
+    this.props.onDisplayed();
     this.cancelCallTimeout = setTimeout(
       this.cancelCall,
       this.props.cancelTime || SECOND * 15,
