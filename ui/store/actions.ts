@@ -368,6 +368,10 @@ export function changePassword(
       if (isSeedlessOnboardingFeatureEnabled && isSocialLoginFlow) {
         try {
           await socialSyncChangePassword(newPassword, oldPassword);
+
+          // store the keyring encryption key in the seedless onboarding controller
+          const keyringEncryptionKey = await exportEncryptionKey();
+          await storeKeyringEncryptionKey(keyringEncryptionKey);
         } catch (error) {
           // revert the keyring password change
           await keyringChangePassword(oldPassword);
@@ -379,6 +383,18 @@ export function changePassword(
       throw error;
     }
   };
+}
+
+export function storeKeyringEncryptionKey(
+  encryptionKey: string,
+): Promise<void> {
+  return submitRequestToBackground('storeKeyringEncryptionKey', [
+    encryptionKey,
+  ]);
+}
+
+export function exportEncryptionKey(): Promise<string> {
+  return submitRequestToBackground('exportEncryptionKey');
 }
 
 export function tryUnlockMetamask(
